@@ -4,6 +4,9 @@ import { useState } from "react";
 
 type View = "Command center" | "Experiments" | "Knowledge base";
 
+const FREE_TRIAL_LIMIT = 2;
+const FREE_TRIAL_STORAGE_KEY = "variant-free-designs-used";
+
 const navItems: { label: View; icon: string }[] = [
   { label: "Command center", icon: "grid" },
   { label: "Experiments", icon: "flask" },
@@ -90,10 +93,14 @@ function Sidebar({ view, setView }: { view: View; setView: (v: View) => void }) 
   </aside>;
 }
 
-function Topbar({ onCreate }: { onCreate: () => void }) {
+function Topbar({ onCreate, freeUsesRemaining }: { onCreate: () => void; freeUsesRemaining: number }) {
   return <header className="topbar">
     <div className="crumb"><span>Momentum Labs</span><b>/</b><strong>Experimentation</strong></div>
     <div className="top-actions">
+      <div className={freeUsesRemaining > 0 ? "trial-badge" : "trial-badge ended"}>
+        <Icon name={freeUsesRemaining > 0 ? "spark" : "clock"} size={14}/>
+        <span>{freeUsesRemaining > 0 ? `${freeUsesRemaining} free ${freeUsesRemaining === 1 ? "analysis" : "analyses"} left` : "Free trial ended"}</span>
+      </div>
       <button className="search"><Icon name="search" size={16}/><span>Search</span><kbd>⌘ K</kbd></button>
       <button className="icon-btn" aria-label="Notifications"><Icon name="bell"/><span className="notification"/></button>
       <button className="primary" onClick={onCreate}><Icon name="plus" size={16}/>New experiment</button>
@@ -170,15 +177,24 @@ function KnowledgeView() {
   return <div className="page-shell knowledge-page"><div className="list-heading"><div><p className="eyebrow">ORGANIZATIONAL MEMORY</p><h1>Experiment knowledge base</h1><p>Find past decisions before your team repeats an experiment.</p></div></div><div className="knowledge-search"><Icon name="search"/><input aria-label="Search knowledge base" placeholder="Search hypotheses, metrics, segments, or outcomes..."/><kbd>⌘ K</kbd></div><div className="knowledge-stats"><span><b>128</b> experiments indexed</span><span><b>47</b> decisions this year</span><span><b>2.4k</b> lessons captured</span></div><div className="knowledge-grid">{cards.map(card => <article className="panel knowledge-card" key={card.title}><div><span className="tag">{card.tag}</span><small>{card.date}</small></div><h2>{card.title}</h2><p>{card.body}</p><footer><span className={card.outcome === "Rolled back" ? "status risk" : "status ok"}>{card.outcome}</span><button>Open readout <Icon name="arrow" size={14}/></button></footer></article>)}</div></div>;
 }
 
-function CreateExperiment({ onClose }: { onClose: () => void }) {
+function CreateExperiment({ onClose, freeUsesRemaining, onUseFreeAnalysis }: { onClose: () => void; freeUsesRemaining: number; onUseFreeAnalysis: () => boolean }) {
   const [step, setStep] = useState(1);
   const [goal, setGoal] = useState("Increase onboarding completion for new mobile users");
   const design = generatedDesign;
+  const trialEnded = freeUsesRemaining === 0 && step === 1;
+  const continueFlow = () => {
+    if (step === 1) {
+      if (onUseFreeAnalysis()) setStep(2);
+      return;
+    }
+    if (step === 2) setStep(3);
+    else onClose();
+  };
   return <div className="modal-backdrop" onMouseDown={e => e.target === e.currentTarget && onClose()}><div className="drawer" role="dialog" aria-modal="true" aria-label="Create experiment"><header><div><span className="eyebrow">AI EXPERIMENT DESIGNER</span><h2>Create an experiment</h2></div><button className="icon-btn" onClick={onClose}><Icon name="close"/></button></header><div className="stepper">{[1,2,3].map(n => <div className={n <= step ? "active" : ""} key={n}><span>{n < step ? <Icon name="check" size={13}/> : n}</span><p>{n === 1 ? "Goal" : n === 2 ? "Design" : "Review"}</p></div>)}</div>
-      {step === 1 && <div className="form-step"><label>What outcome do you want to improve?</label><textarea value={goal} onChange={e => setGoal(e.target.value)} rows={4}/><div className="prompt-help"><Icon name="spark"/><p><strong>Tip</strong> Describe the user, behavior, and outcome. The AI designer will propose a testable hypothesis and measurement plan.</p></div><label>Product area</label><select defaultValue="Onboarding"><option>Onboarding</option><option>Checkout</option><option>Search</option><option>Retention</option></select></div>}
+      {trialEnded ? <div className="form-step trial-ended-state"><div className="trial-ended-mark"><Icon name="spark" size={28}/></div><span className="eyebrow">FREE TRIAL COMPLETE</span><h3>You’ve used both free analyses</h3><p>Your two complimentary experiment designs have been used. Upgrade your workspace to continue creating AI-assisted experiments.</p><div className="trial-summary"><div><Icon name="check" size={15}/><span>2 experiment designs created</span></div><div><Icon name="check" size={15}/><span>Hypotheses and metrics generated</span></div><div><Icon name="check" size={15}/><span>Recommendations saved to your workspace</span></div></div></div> : step === 1 && <div className="form-step"><div className="trial-callout"><Icon name="spark" size={16}/><div><strong>{freeUsesRemaining} free {freeUsesRemaining === 1 ? "analysis" : "analyses"} remaining</strong><span>No payment details required</span></div></div><label>What outcome do you want to improve?</label><textarea value={goal} onChange={e => setGoal(e.target.value)} rows={4}/><div className="prompt-help"><Icon name="spark"/><p><strong>Tip</strong> Describe the user, behavior, and outcome. The AI designer will propose a testable hypothesis and measurement plan.</p></div><label>Product area</label><select defaultValue="Onboarding"><option>Onboarding</option><option>Checkout</option><option>Search</option><option>Retention</option></select></div>}
       {step === 2 && <div className="form-step generated"><div className="generated-label"><Icon name="spark"/>AI-GENERATED DESIGN <span>Based on: “{goal}”</span></div><label>Hypothesis</label><div className="generated-field">{design.hypothesis}</div><div className="two-col"><div><label>Primary metric</label><div className="generated-field">{design.primary}</div></div><div><label>Guardrails</label><div className="generated-field">{design.guardrails}</div></div></div><label>Recommended sample</label><div className="generated-field">{design.duration}</div></div>}
       {step === 3 && <div className="form-step review-step"><div className="success-mark"><Icon name="check" size={28}/></div><h3>Your experiment is ready for review</h3><p>The hypothesis, measurement plan, audience, and statistical assumptions will be saved as a draft.</p><div className="review-card"><span>EXPERIMENT</span><strong>Guided mobile onboarding</strong><small>{design.primary} · {design.duration}</small></div></div>}
-      <footer><button className="secondary" onClick={step === 1 ? onClose : () => setStep(step - 1)}>{step === 1 ? "Cancel" : "Back"}</button><button className="primary" onClick={step === 3 ? onClose : () => setStep(step + 1)}>{step === 1 ? <><Icon name="spark" size={15}/>Generate design</> : step === 2 ? "Review experiment" : "Save draft"}<Icon name="arrow" size={15}/></button></footer>
+      <footer>{trialEnded ? <button className="primary" onClick={onClose}>Got it</button> : <><button className="secondary" onClick={step === 1 ? onClose : () => setStep(step - 1)}>{step === 1 ? "Cancel" : "Back"}</button><button className="primary" onClick={continueFlow}>{step === 1 ? <><Icon name="spark" size={15}/>Generate design · {freeUsesRemaining} free left</> : step === 2 ? "Review experiment" : "Save draft"}<Icon name="arrow" size={15}/></button></>}</footer>
     </div></div>;
 }
 
@@ -186,5 +202,18 @@ export default function Home() {
   const [view, setView] = useState<View>("Command center");
   const [rollout, setRollout] = useState(25);
   const [creating, setCreating] = useState(false);
-  return <main className="app"><Sidebar view={view} setView={setView}/><div className="workspace"><Topbar onCreate={() => setCreating(true)}/>{view === "Command center" && <CommandCenter rollout={rollout} onRollout={setRollout} onCreate={() => setCreating(true)}/>} {view === "Experiments" && <ExperimentsView onCreate={() => setCreating(true)}/>} {view === "Knowledge base" && <KnowledgeView/>}</div>{creating && <CreateExperiment onClose={() => setCreating(false)}/>}</main>;
+  const [freeUsesRemaining, setFreeUsesRemaining] = useState(() => {
+    if (typeof window === "undefined") return FREE_TRIAL_LIMIT;
+    const used = Number.parseInt(window.localStorage.getItem(FREE_TRIAL_STORAGE_KEY) ?? "0", 10);
+    const safeUsed = Number.isFinite(used) ? Math.min(Math.max(used, 0), FREE_TRIAL_LIMIT) : 0;
+    return FREE_TRIAL_LIMIT - safeUsed;
+  });
+  const useFreeAnalysis = () => {
+    if (freeUsesRemaining <= 0) return false;
+    const nextRemaining = freeUsesRemaining - 1;
+    setFreeUsesRemaining(nextRemaining);
+    window.localStorage.setItem(FREE_TRIAL_STORAGE_KEY, String(FREE_TRIAL_LIMIT - nextRemaining));
+    return true;
+  };
+  return <main className="app"><Sidebar view={view} setView={setView}/><div className="workspace"><Topbar onCreate={() => setCreating(true)} freeUsesRemaining={freeUsesRemaining}/>{view === "Command center" && <CommandCenter rollout={rollout} onRollout={setRollout} onCreate={() => setCreating(true)}/>} {view === "Experiments" && <ExperimentsView onCreate={() => setCreating(true)}/>} {view === "Knowledge base" && <KnowledgeView/>}</div>{creating && <CreateExperiment onClose={() => setCreating(false)} freeUsesRemaining={freeUsesRemaining} onUseFreeAnalysis={useFreeAnalysis}/>}</main>;
 }
