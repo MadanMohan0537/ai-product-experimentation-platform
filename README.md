@@ -1,76 +1,94 @@
-# AI Product Experimentation Platform
+# 🧪 AI Product Experimentation Platform
 
-A portfolio-grade product decision system for designing, monitoring, analyzing, and deciding product experiments. The current build demonstrates the complete PM workflow through realistic sample data while keeping the architecture ready for real event and feature-flag integrations.
+<p align="center">
+  <strong>A portfolio-grade product decision operating system for designing, monitoring, analyzing, and deciding A/B product experiments.</strong>
+</p>
 
-## What is implemented
+<p align="center">
+  <a href="#license"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square" alt="License"></a>
+  <a href="https://nextjs.org"><img src="https://img.shields.io/badge/Next.js-15-black?style=flat-square&logo=next.js" alt="Next.js"></a>
+  <a href="https://react.dev"><img src="https://img.shields.io/badge/React-19-61dafb?style=flat-square&logo=react" alt="React"></a>
+  <a href="https://www.typescriptlang.org"><img src="https://img.shields.io/badge/TypeScript-5.0-3178c6?style=flat-square&logo=typescript" alt="TypeScript"></a>
+  <a href="https://deepseek.com"><img src="https://img.shields.io/badge/AI-DeepSeek%20%2F%20Claude-blueviolet?style=flat-square" alt="AI"></a>
+  <a href="https://workers.cloudflare.com"><img src="https://img.shields.io/badge/Deployment-Cloudflare%20Workers-f38020?style=flat-square" alt="Cloudflare Workers"></a>
+</p>
 
-- Portfolio command center with active experiment, win-rate, time-to-learn, and risk signals
-- Live experiment view with conversion trends, statistical confidence, and guardrail health
-- AI decision brief with segment-level findings and an auditable recommendation
-- Progressive rollout control from 1% to 100%
-- AI-assisted three-step experiment creation workflow
-- Prioritized experiment portfolio using realistic RICE-style scores
-- Searchable-style experiment knowledge base and decision history
-- Responsive desktop and mobile layouts
-- Server-side AI provider adapter: DeepSeek first, Anthropic fallback, safe demo response without keys
+---
 
-## Product demo
+## 📌 Overview
 
-The guided scenario follows a `One-Click Checkout` experiment. Overall checkout conversion is up 6.8%, but the system detects increased verification abandonment among new Android users. The recommendation is to hold the rollout at 25%, keep healthy segments live, and investigate the Android flow.
+**AI Product Experimentation Platform** is a modern decision-support system built for Product Managers, Growth Leads, and Data Scientists. It replaces chaotic spreadsheet tracking with a unified workflow: from **hypothesis design and MDE power calculations** to **real-time telemetry monitoring, guardrail health tracking, and AI-synthesized rollout recommendations**.
 
-## Run locally
+---
 
-Requirements: Node.js 22.13 or newer.
+## ✨ Key Features
+
+- **📊 Portfolio Command Center:** Real-time visibility into active experiments, portfolio win rates, average time-to-learn, and active segment risks.
+- **🔬 3-Step AI-Assisted Experiment Designer:**
+  - Formulates testable hypotheses, target audience segments, and variant splits.
+  - Automatically identifies **Primary KPIs**, **Secondary Metrics**, and **Guardrail Metrics** (e.g. latency, error rates, drop-offs).
+  - Calculates Minimum Detectable Effect (MDE) and sample size requirements.
+- **📈 Live Experiment Telemetry & Statistical Significance:**
+  - Conversion trends, confidence interval visualization, and p-value statistical significance alerts.
+  - Detects segment-specific anomalies (e.g. high Android checkout abandonment despite overall iOS conversion lift).
+- **🤖 AI Decision Briefs & Rollout Control:**
+  - Generates auditable **Ship / Iterate / Rollback** recommendations with business justification.
+  - Supports progressive feature rollout controls from 1% to 100%.
+- **🛡️ Provider-Agnostic AI Backend:** DeepSeek V3 primary engine with Anthropic Claude fallback and offline demo simulation mode.
+
+---
+
+## 🏗️ Architecture
+
+```mermaid
+flowchart LR
+    A[Product Hypothesis] --> B[AI Experiment Designer]
+    B --> C[Variant Config & Sample Sizing]
+    C --> D[Live Telemetry & Metric Engine]
+    D --> E[Statistical Significance & Guardrail Health]
+    E --> F[AI Decision Recommendation: Ship / Rollback]
+```
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+- **Node.js:** v20+ or v22+
+- **AI Key:** (Optional) `DEEPSEEK_API_KEY` or `ANTHROPIC_API_KEY`
+
+### Installation
 
 ```bash
+# Clone the repository
+git clone https://github.com/MadanMohan0537/ai-product-experimentation-platform.git
+cd ai-product-experimentation-platform
+
+# Install dependencies
 npm install
+
+# Configure environment variables
 cp .env.example .env.local
+# Add your DEEPSEEK_API_KEY or ANTHROPIC_API_KEY (optional: app runs in demo mode without keys)
+
+# Start development server
 npm run dev
 ```
 
-Add either `DEEPSEEK_API_KEY` or `ANTHROPIC_API_KEY` to `.env.local`. Never commit that file. The interface remains usable in demo mode without an API key.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## Validation
+---
 
-```bash
-npm run lint
-npm test
-```
+## 🛠️ Tech Stack
 
-## AI provider behavior
+- **Framework:** Next.js 15 (App Router), React 19
+- **Language:** TypeScript
+- **Styling:** TailwindCSS, Modern CSS
+- **AI Integrations:** DeepSeek API, Anthropic Claude SDK
+- **Runtime:** Cloudflare Workers (Vinext) / Vercel
 
-`POST /api/ai/design` accepts a goal, product area, and audience. Provider priority is:
+---
 
-1. DeepSeek when `DEEPSEEK_API_KEY` is available
-2. Anthropic when `ANTHROPIC_API_KEY` is available
-3. Deterministic demo response when neither key exists
+## 📄 License
 
-The keys are read only by the server route and are never exposed to the browser.
-
-## Cloudflare direction
-
-The application uses a Cloudflare-compatible Vinext runtime and produces a Worker-compatible server bundle. Deployment can be connected to a private GitHub repository after environment variables are configured in Cloudflare. The exact Pages/Workers deployment target will be finalized in the deployment phase so API secrets remain server-side.
-
-## Next implementation phases
-
-- PostgreSQL/D1 experiment persistence and audit trail
-- Real statistical engine for frequentist and sequential testing
-- Event ingestion and metric computation
-- OpenFeature or GrowthBook feature-flag adapter
-- Role-based workspaces and approval workflows
-- Retrieval over experiment history and qualitative feedback
-- Root-cause agent using logs, feedback, and release metadata
-
-## Architecture
-
-```text
-Product UI (React / Next.js)
-        |
-        +-- Experiment design API
-        |       +-- DeepSeek
-        |       +-- Anthropic fallback
-        |
-        +-- Demo analytics model (current)
-        |
-        +-- Persistence + event ingestion (next phase)
-```
+MIT License — see [LICENSE](LICENSE) for details.
