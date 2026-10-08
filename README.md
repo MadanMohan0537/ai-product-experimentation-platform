@@ -16,9 +16,9 @@
 
 ## Demo data, model output and rollout boundaries
 
-Start without provider keys to explore the interface. The fallback in [lib/ai.ts](lib/ai.ts) returns a fixed illustrative experiment design; it is not a model-generated analysis of your input. With a key, the code selects DeepSeek first, or Anthropic when only that provider is configured. A failed configured provider request is not automatically retried through the other provider.
+Start without provider keys for input-specific local planning outlines and local statistical analysis. [lib/ai.ts](lib/ai.ts) labels the no-key result as a local outline. With keys, the existing provider selection remains DeepSeek first, or Anthropic when only its key is configured.
 
-Treat displayed telemetry and rollout controls as application/demo state until connected to your own event ingestion and feature-delivery infrastructure. Moving a rollout slider does not demonstrate that a production feature flag changed.
+Workspace counts are user-entered evidence, not live telemetry. Progressive rollout is recorded planning state and never changes a production feature flag. Review the working workflow section below for current functionality and limits.
 
 ### Development checks
 
@@ -106,3 +106,26 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ## License
 
 No license file is currently included. Add an explicit license before redistributing implementation code or data.
+
+
+## Working experiment workflow (2026-10 update)
+
+The main product now creates and persists actual experiment drafts in the current browser, rather than showing fixed sample experiments or closing an unsaved design drawer. There is no artificial two-design trial gate. Search and the knowledge base operate on saved experiments and human review decisions.
+
+1. Declare a hypothesis, audience, primary conversion metric, baseline and relative minimum useful effect.
+2. Review the approximate per-arm sample requirement (50/50 assignment, fixed 5% two-sided alpha, 80% power).
+3. Save the draft and record control/treatment visitors and conversions.
+4. Add guardrails in native metric units with a preferred direction and allowed regression.
+5. Inspect calculated rates, absolute/relative lift, a normal-approximation 95% difference interval, two-sided p-value, sample-ratio warning and the computed Hold / Ship / Iterate / Rollback recommendation.
+6. Record your own review decision and a planned rollout percentage. Neither performs a release.
+7. Export the workspace to JSON, import a validated backup, and search prior hypotheses and decisions.
+
+The numerical engine lives in `lib/experiment-engine.ts`; it rejects impossible plans, invalid counts, sparse normal-approximation results and malformed imported drafts. A positive primary result cannot receive a Ship recommendation without entered guardrails. Source-count assumptions and sequential-peeking limits are exposed in each readout. No event ingestion, actual production feature flag, or universal causal validation is claimed.
+
+Optional planning requests now reach the existing design endpoint. Without provider keys, a deterministic outline is built from the supplied goal and audience and labeled `local-outline`, rather than pretending a fixed example is AI-generated. With configured provider keys, provider output remains a proposal to review.
+
+```bash
+npm run test:engine
+```
+
+The engine suite covers sample-size boundaries, positive and negative results, guardrail overrides, sparse/underpowered samples, assignment mismatch, count validation, and draft-import validation. Workspace data stays in browser localStorage; export before changing devices or clearing browser data. Model-assisted planning sends the entered goal/audience to the configured provider; count analysis stays local.

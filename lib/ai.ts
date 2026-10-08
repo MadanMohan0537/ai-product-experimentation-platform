@@ -46,12 +46,12 @@ export async function designExperiment(input: ExperimentDesignRequest): Promise<
   }
 
   return {
-    hypothesis: "Simplifying onboarding to three guided steps will increase completion by 8% for new mobile users.",
-    primaryMetric: "Onboarding completion rate",
-    guardrailMetrics: ["Day-7 retention", "Crash-free sessions", "Support contact rate"],
-    suggestedSegments: ["New users", "Android", "iOS", "Low-bandwidth sessions"],
+    hypothesis: `For ${input.audience?.trim() || "the target audience"}, test whether a scoped change supports this goal: ${input.goal.trim()}. Declare the treatment and success threshold before launch.`,
+    primaryMetric: "Conversion rate for the stated user outcome",
+    guardrailMetrics: ["Error rate", "Retention", "Support contact rate"],
+    suggestedSegments: [input.audience?.trim() || "Target audience"],
     durationDays: 14,
-    risks: ["Novelty effect", "Platform-specific verification friction"],
-    confidence: 78,
+    risks: ["Baseline traffic and conversion must be supplied", "Novelty and assignment effects require review"],
+    confidence: 0,
   };
 }
